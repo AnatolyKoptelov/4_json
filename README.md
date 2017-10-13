@@ -11,7 +11,10 @@ https://docs.python.org/3.5/library/codecs.html#standard-encodings
 There are 2 ways for using this application:
 
 1.	With command line.
-    Run command python pprint_json.py <path_to_file> [codec]
+    Run command 
+    ```#!bash
+    python pprint_json.py <path_to_file> [codec]
+    ```
 2.	With import function
     Function returns a dictionary with 3 objects:
 	- rc: request code = 1 for success, negative value for unsuccess 
