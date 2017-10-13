@@ -4,7 +4,7 @@ import zipfile
 import io, sys
 import json
 
-# list of codex for python 3.5
+# list of codecs for python 3.5
 CODECS = ['ascii',
  'big5', 'big5hkscs', 'cp037', 'cp273', 'cp424', 'cp437', 'cp500',
  'cp720', 'cp737', 'cp775', 'cp850', 'cp852', 'cp855', 'cp856',
