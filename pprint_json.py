@@ -34,7 +34,7 @@ def pretty_json(path, codec=''):
         path = 'https://' + url 
     # Check URL connection
     rq = requests.get(path)
-    if rq.status_code == 200:
+    if rq.ok:
         # Is this file is zipfile?
         if zipfile.is_zipfile(io.BytesIO(rq.content)):
             input_file =  zipfile.ZipFile(io.BytesIO(rq.content))
@@ -44,43 +44,43 @@ def pretty_json(path, codec=''):
             input_file = rq.content
     # HTTP response code !=200, return errorcode
     else:
-        return({'rc':-1, 
+        return{'rc':-1, 
                 'rt':'Incorrect or unavalible URL', 
                 'json': None
-               })
+               }
     # Use custom codec
     if codec:
         if codec in CODECS:
             # Decode file, if possible
             try:
                 input_file =  input_file.decode(codec)
-            except:
+            except Exception:
                 # Return errorcode
-                return({'rc':-2, 
+                return{'rc':-2, 
                         'rt':'Can not decode data with codec: %s'%codec,
                         'json':None
-                       })
+                       }
 
         else:
             # Wrong codec, return errorcode
-            return({'rc':-4, 
+            return{'rc':-4, 
                     'rt':'Incorrect codec, use one of codeclist: %s'%cl,
                     'json':None
-                    })
+                    }
     # Read JSON file, if possible
     try:
         output = json.loads(input_file, encoding='utf-8')
-    except:
+    except Exception:
         # Return errorcode
-        return({'rc':-3, 
+        return{'rc':-3, 
                 'rt':'Can not read JSON file, try to use codec',
                 'json':None
-               })
+               }
     # Everything is OK, great job
-    return({'rc':1,
+    return{'rc':1,
             'rt':'OK',
             'json':json.dumps(output, indent=4, sort_keys=True, ensure_ascii=False)
-           })
+           }
 
 
 # main app
@@ -96,6 +96,6 @@ if __name__ == '__main__':
         sys.exit(-1)
     url = sys.argv[1]
     codec = len(sys.argv)>2 and sys.argv[2] or ''
-    # Return pretty JSON
+    # Print pretty JSON
     pj = pretty_json(url, codec = codec)
     print(pj['json'], pj['rc'], pj['rt'])
