@@ -3,7 +3,7 @@
 Application for gett pretty view of JSON files downloaded from web. 
 Sometimes, theire files can be zipped for traffic volume economy.
 For example: https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872
-Application  can read a JSON file by path in web and and even open the zipped files.
+Application  can read a JSON file by path in web and and even open zipped files.
 By default, it works with encoded utf_8 files, but sometimes downloaded files can have a different encoding.
 You can use optional parameter "codec" for decode original file. 
 iA value of this parameter  should be taken from the list on the oficial Python site:
