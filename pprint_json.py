@@ -25,6 +25,15 @@ CODECS = ['ascii', 'big5', 'big5hkscs', 'cp037', 'cp273', 'cp424', 'cp437',
 # URL to codeclist
 cl = 'https://docs.python.org/3.5/library/codecs.html#standard-encodings'
 
+# Error messages
+RT = {
+       1:'OK', 
+      -1:'Incorrect or unavalible URL',
+      -2:'Can not decode data with codec: %s\n(%s)',
+      -3:'Can not read JSON file, try to use codec\n(%s)',
+      -4:'Incorrect codec, use one of codeclist: %s' %cl
+        }
+
 # Function for cheching and opening zip-type files 
 def openzip(input_file):
     if zipfile.is_zipfile(io.BytesIO(input_file)):
@@ -34,8 +43,27 @@ def openzip(input_file):
     else:
         return input_file 
 
+def decode_file(input_file,codec):
+    if codec in CODECS:
+        # Decode file, if possible
+        try:
+            rc, input_file =  1, input_file.decode(codec)
+        except UnicodeDecodeError as ude:
+            # return errorcode
+            rc = -2
+            return rc, RT[rc]%(codec,ude), None
+    else:
+        rc = -4
+    return rc, RT[rc], rc>0 and input_file or None
+
+
+
 def pretty_json(path, codec=''):
-    
+
+    # initial request code=1
+    rc = 1
+    rt = RT[rc]
+
     # Check http or https before URL
     if path[:4] != 'http':
         path = 'https://' + url 
@@ -48,47 +76,22 @@ def pretty_json(path, codec=''):
     
         # Use custom codec
         if codec:
-            if codec in CODECS:
-
-                # Decode file, if possible
-                try:
-                    input_file =  input_file.decode(codec)
-                except UnicodeDecodeError as ude:
-                    # Return errorcode
-                    return{'rc':-2, 
-                            'rt':'Can not decode data with codec: %s\n(%s)' % (codec, ude),
-                            'json':None
-                           }
-
-            else:
-                # Wrong codec, return errorcode
-                return{'rc':-4, 
-                       'rt':'Incorrect codec, use one of codeclist: %s' % cl,
-                       'json':None
-                      }
+            rc, rt, input_file = decode_file(input_file,codec)
 
         # Read JSON file, if possible
         try:
-            output = json.loads(input_file, encoding='utf-8')
+            output = rc>0 and json.loads(input_file, encoding='utf-8') or None
         except UnicodeDecodeError as ude:
-            # Return errorcode
-            return{'rc':-3, 
-                   'rt':'Can not read JSON file, try to use codec\n(%s)' % ude,
-                   'json':None
-                  }
-
-        # Everything is OK, great job
-        return{'rc':1,
-               'rt':'OK',
-               'json':json.dumps(output, indent=4, sort_keys=True, ensure_ascii=False)
-              }
+            rc, rt, output = -3, RT[rc] %ude, None
 
     # HTTP response code !=200, return errorcode
     else:
-        return{'rc':-1, 
-                'rt':'Incorrect or unavalible URL', 
-                'json': None
-               }
+        rc = -1
+    
+    return {'rc':rc,
+            'rt':rt,
+            'json':rc>0 and json.dumps(output, indent=4, sort_keys=True, ensure_ascii=False) or None,
+            }
 
 
 # main app
