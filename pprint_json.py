@@ -24,31 +24,48 @@ def read_url_file(path):
     try:
         rq = requests.get(path)
     except requests.exceptions.ConnectionError:
-        json_file = None
+        readed_file = None
         response_code = -1
-        return json_file, response_code
+        return readed_file, response_code
     if rq.ok:
-        json_file = rq.content
+        readed_file = rq.content
         response_code = 0
-        return json_file, response_code
+        return readed_file, response_code
     else:
-        json_file = None
+        readed_file = None
         response_code = -2
-        return json_file, response_code
+        return readed_file, response_code
 
 
 def read_local_file(path):
     if os.path.isfile(path):
         try:
             with open(path, 'rb') as file_to_read:
-                json_file = file_to_read.read()
+                readed_file = file_to_read.read()
                 response_code = 0
         except IOError:
-            json_file = None
+            readed_file = None
             response_code = -5
     else:
-        json_file = None
+        readed_file = None
         response_code = -6
+    return readed_file, response_code
+
+
+def decode_file(file_for_decoding, codec):
+    try:
+        decoded_file, response_code = file_for_decoding.decode(codec), 0
+    except ValueError:
+        decoded_file, response_code = None, -3
+    return decoded_file, response_code
+
+
+def load_json(json_file):
+    try:
+        json_file = json.loads(json_file, encoding='utf-8')
+        response_code = 0
+    except json.decoder.JSONDecodeError:
+        json_file, response_code = None, -4
     return json_file, response_code
 
 
@@ -114,19 +131,22 @@ if __name__ == '__main__':
         -5: 'Cannot open the file: {}'.format(args.path[0]),
         -6: 'File {} does not exist, check it location'.format(args.path[0]),
     }
-
     json_file, response_code = args.load_data(args.path[0])
+    json_file = not response_code and extract_zip_file(json_file) or None
+
+    json_file, response_code = not response_code and decode_file(
+        json_file,
+        args.codec,
+    ) or (
+          None,
+          response_code,
+    )
+
+    json_file, response_code = not response_code and load_json(json_file) or(
+        None,
+        response_code,
+    )
+
     if not response_code:
-        json_file = extract_zip_file(json_file)
-        try:
-            json_file = json_file.decode(args.codec)
-        except ValueError:
-            json_file, response_code = None, -3
-        if not response_code:
-            try:
-                json_file = json.loads(json_file, encoding='utf-8')
-            except json.decoder.JSONDecodeError:
-                json_file, response_code = None, -4
-            if not response_code:
-                pretty_print_json(json_file)
+        pretty_print_json(json_file)
     print(response_code and response_texts[response_code] or '')
