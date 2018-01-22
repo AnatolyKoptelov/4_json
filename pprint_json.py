@@ -1,112 +1,131 @@
-# coding: utf8
-import requests 
-import zipfile
-import io, sys
+import io
+import os
 import json
+import zipfile
+import requests
+import argparse
 
-# list of codecs for python 3.5
-CODECS = ['ascii', 'big5', 'big5hkscs', 'cp037', 'cp273', 'cp424', 'cp437', 
- 'cp500', 'cp720', 'cp737', 'cp775', 'cp850', 'cp852', 'cp855', 'cp856',
- 'cp857', 'cp858', 'cp860', 'cp861', 'cp862', 'cp863', 'cp864','cp865', 
- 'cp866', 'cp869', 'cp874', 'cp875', 'cp932', 'cp949','cp950', 'cp1006', 
- 'cp1026', 'cp1125', 'cp1140', 'cp1250', 'cp1251', 'cp1252', 'cp1253', 
- 'cp1254', 'cp1255', 'cp1256', 'cp1257', 'cp1258', 'cp65001', 'euc_jp',
- 'euc_jis_2004', 'euc_jisx0213', 'euc_kr', 'gb2312', 'gbk', 'gb18030', 
- 'hz', 'iso2022_jp', 'iso2022_jp_1', 'iso2022_jp_2', 'iso2022_jp_2004', 
- 'iso2022_jp_3', 'iso2022_jp_ext', 'iso2022_kr', 'latin_1', 'iso8859_2', 
- 'iso8859_3', 'iso8859_4', 'iso8859_5', 'iso8859_6', 'iso8859_7', 'iso8859_8',
- 'iso8859_9', 'iso8859_10', 'iso8859_11', 'iso8859_13', 'iso8859_14', 
- 'iso8859_15', 'iso8859_16', 'johab', 'koi8_r', 'koi8_t', 'koi8_u', 'kz1048', 
- 'mac_cyrillic', 'mac_greek', 'mac_iceland', 'mac_latin2', 'mac_roman', 
- 'mac_turkish', 'ptcp154', 'shift_jis', 'shift_jis_2004', 'shift_jisx0213', 
- 'utf_32', 'utf_32_be', 'utf_32_le', 'utf_16', 'utf_16_be', 'utf_16_le', 
- 'utf_7', 'utf_8', 'utf_8_sig']
 
-# URL to codeclist
-cl = 'https://docs.python.org/3.5/library/codecs.html#standard-encodings'
-
-# Error messages
-RT = {
-       1:'OK', 
-      -1:'Incorrect or unavalible URL',
-      -2:'Can not decode data with codec: %s\n(%s)',
-      -3:'Can not read JSON file, try to use codec\n(%s)',
-      -4:'Incorrect codec, use one of codeclist: %s' %cl
-        }
-
-# Function for cheching and opening zip-type files 
-def openzip(input_file):
-    if zipfile.is_zipfile(io.BytesIO(input_file)):
-        input_file =  zipfile.ZipFile(io.BytesIO(input_file))
-        return input_file.read(input_file.namelist()[0])
-    # Not zip
+def extract_zip_file(file_for_extract):
+    if zipfile.is_zipfile(io.BytesIO(file_for_extract)):
+        extracted_file = zipfile.ZipFile(io.BytesIO(file_for_extract))
+        return extracted_file.read(extracted_file.namelist()[0])
     else:
-        return input_file 
-
-def decode_file(input_file,codec):
-    if codec in CODECS:
-        # Decode file, if possible
-        try:
-            rc, input_file =  1, input_file.decode(codec)
-        except UnicodeDecodeError as ude:
-            # return errorcode
-            rc = -2
-            return rc, RT[rc]%(codec,ude), None
-    else:
-        rc = -4
-    return rc, RT[rc], rc>0 and input_file or None
+        return file_for_extract
 
 
+def pretty_print_json(json_file):
+    print(json.dumps(json_file, indent=4, sort_keys=True, ensure_ascii=False))
 
-def pretty_json(path, codec=''):
 
-    # initial request code=1
-    rc = 1
-    rt = RT[rc]
-
-    # Check http or https before URL
+def read_url_file(path):
     if path[:4] != 'http':
-        path = 'https://' + url 
-    # Check URL connection
-    rq = requests.get(path)
+        path = 'http://' + path
+    try:
+        rq = requests.get(path)
+    except requests.exceptions.ConnectionError:
+        json_file = None
+        response_code = -1
+        return json_file, response_code
     if rq.ok:
-
-        # Is this file is zipfile? Check it
-        input_file = openzip(rq.content) 
-    
-        # Use custom codec
-        if codec:
-            rc, rt, input_file = decode_file(input_file,codec)
-
-        # Read JSON file, if possible
-        try:
-            output = rc>0 and json.loads(input_file, encoding='utf-8') or None
-        except UnicodeDecodeError as ude:
-            rc, rt, output = -3, RT[rc] %ude, None
-
-    # HTTP response code !=200, return errorcode
+        json_file = rq.content
+        response_code = 0
+        return json_file, response_code
     else:
-        rc = -1
-    
-    return {'rc':rc,
-            'rt':rt,
-            'json':rc>0 and json.dumps(output, indent=4, sort_keys=True, ensure_ascii=False) or None,
-            }
+        json_file = None
+        response_code = -2
+        return json_file, response_code
 
 
-# main app
+def read_local_file(path):
+    if os.path.isfile(path):
+        try:
+            with open(path, 'rb') as file_to_read:
+                json_file = file_to_read.read()
+                response_code = 0
+        except IOError:
+            json_file = None
+            response_code = -5
+    else:
+        json_file = None
+        response_code = -6
+    return json_file, response_code
+
+
 if __name__ == '__main__':
-    # Check commandline values
-    if len(sys.argv) not in (2,3):
-        print("""\n
-               Usage:\n
-               python pretty_json.py URL [codec]\n
-               where codec is one of codeclist:\n
-               %s\n
-               """%cl)
-        sys.exit(-1)
-    url = sys.argv[1]
-    codec = len(sys.argv)>2 and sys.argv[2] or ''
-    # Print pretty JSON
-    pj = pretty_json(url, codec = codec)
-    print(pj['json'] is not None and pj['json'] or pj['rt'])
+
+    codecs = ['utf_8',
+              'cp1251',
+              'koi8_r',
+              'cp866',
+              'mac_cyrillic',
+              ]
+
+    parser = argparse.ArgumentParser(
+        description='Print JSON files in correct and readable form'
+    )
+    parser.add_argument(
+        'path',
+        metavar='path',
+        type=str,
+        nargs=1,
+        help='File path: local or URL'
+    )
+    parser.add_argument(
+        '-l',
+        '--local',
+        dest='load_data',
+        action='store_const',
+        const=read_local_file,
+        default=read_url_file,
+        help='Use if you print a local JSON file'
+    )
+    parser.add_argument(
+        '-c',
+        '--codec',
+        action='store',
+        nargs='?',
+        default='utf_8',
+        choices=codecs,
+        help='Use for decode a original file'
+    )
+    args = parser.parse_args()
+    response_code = 1
+    response_texts = {
+        1: 'Work with the file is not implemented',
+        0: 'OK',
+        -1: '{}{}\n{}\n{}'.format(
+            'Cannot connect to ',
+            args.path[0],
+            'Check your internet connection or file path is correct',
+            'For opening a local file use "-l" command string option'
+        ),
+        -2: 'Incorrect or unavailable URL',
+        -3: '{}{} codec. Try to use other codec'.format(
+            'Cannot decode file with ',
+            args.codec,
+            'codec.\n Try to use other codec!',
+        ),
+        -4: '{}{}'.format(
+            'Can not read JSON file, check this JSON file ',
+            'on the validator or try to use codec.',
+        ),
+        -5: 'Cannot open the file: {}'.format(args.path[0]),
+        -6: 'File {} does not exist, check it location'.format(args.path[0]),
+    }
+
+    json_file, response_code = args.load_data(args.path[0])
+    if not response_code:
+        json_file = extract_zip_file(json_file)
+        try:
+            json_file = json_file.decode(args.codec)
+        except ValueError:
+            json_file, response_code = None, -3
+        if not response_code:
+            try:
+                json_file = json.loads(json_file, encoding='utf-8')
+            except json.decoder.JSONDecodeError:
+                json_file, response_code = None, -4
+            if not response_code:
+                pretty_print_json(json_file)
+    print(response_code and response_texts[response_code] or '')

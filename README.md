@@ -1,46 +1,25 @@
 # Prettify JSON
 
-Application for gett pretty view of JSON files downloaded from web. 
-Sometimes, theire files can be zipped for traffic volume economy.
+Application for gett pretty view of JSON files - local or downloaded from web. 
+Use **-l** option for local file, for web file option using by default.
+Sometimes, these files can be zipped for traffic volume economy.
 For example: https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872
-Application  can read a JSON file by path in web and and even open zipped files.
+Application  can read a JSON file by path in web or local and and even open zipped files.
 By default, it works with encoded utf_8 files, but sometimes downloaded files can have a different encoding.
-You can use optional parameter "codec" for decode original file. 
-iA value of this parameter  should be taken from the list on the oficial Python site:
-https://docs.python.org/3.5/library/codecs.html#standard-encodings 
-There are 2 ways for using this application:
-
-1.	With command line.
-    Run command 
-    ```#!bash
-    python pprint_json.py <path_to_file> [codec]
-    ```
-2.	With import function
-    Function returns a dictionary with 3 objects:
-	- rc: request code = 1 for success, negative value for unsuccess 
-	- rt: text explanation of request code
-	- json: pretty view of original json file if success or None if unsuccess
-
-Simpe example:
-``````````````````````````````````````````````````````````````````````
-from  pprint_json import pretty_json
-
-url='https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872'
-result = pretty_json(url, codec='cp1251')
-if result['rc']>0:
-    print(result['json'])
-else:
-    print(result['rt'])
-``````````````````````````````````````````````````````````````````````
+You can use optional parameter **-c** for decode original file. 
+This application supports these codecs:
+ - utf_8
+ - cp1251
+ - koi8_r
+ - cp866
+ - mac_cyrillic  
 
 # Quickstart
 
+Example of script launch on Linux, Python 3.*:
 
-Example of script launch on Linux, Python 3.5:
-
-```#!bash
-$ python pprint_json.py https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872 cp1251 
-# output:
+```
+$ python pprint_json.py https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872 -c cp1251 
 
 [
     {
@@ -79,8 +58,25 @@ $ python pprint_json.py https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872
         },
         "global_id": 4539436
     },...
-`
+```
 
+Use **-h** option for read application info:
+```
+pprint_json.py -h 
+usage: pprint_json.py [-h] [-l]
+                      [-c [{utf_8,cp1251,koi8_r,cp866,mac_cyrillic}]]
+                      path
+
+Print JSON files in correct and readable form
+
+positional arguments:
+  path                  File path: local or URL
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l, --local           Use if you print a local JSON file
+  -c [{utf_8,cp1251,koi8_r,cp866,mac_cyrillic}], --codec [{utf_8,cp1251,koi8_r,cp866,mac_cyrillic}]
+                        Use for decode a original file
 ```
 
 # Project Goals
