@@ -54,12 +54,13 @@ def read_local_file(path):
 
 if __name__ == '__main__':
 
-    codecs = ['utf_8',
-              'cp1251',
-              'koi8_r',
-              'cp866',
-              'mac_cyrillic',
-              ]
+    codecs = [
+        'utf_8',
+        'cp1251',
+        'koi8_r',
+        'cp866',
+        'mac_cyrillic',
+    ]
 
     parser = argparse.ArgumentParser(
         description='Print JSON files in correct and readable form'
@@ -107,7 +108,7 @@ if __name__ == '__main__':
             'codec.\n Try to use other codec!',
         ),
         -4: '{}{}'.format(
-            'Can not read JSON file, check this JSON file ',
+            'Cannot read JSON file, check this JSON file ',
             'on the validator or try to use codec.',
         ),
         -5: 'Cannot open the file: {}'.format(args.path[0]),
