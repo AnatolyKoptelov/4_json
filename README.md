@@ -1,10 +1,12 @@
 # Prettify JSON
 
 Application for gett pretty view of JSON files - local or downloaded from web. 
-Use **-l** option for local file, for web file option using by default.
+Use **-l** option for local file or default option for web files.
 Sometimes, these files can be zipped for traffic volume economy.
-For example: https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872
-Application  can read a JSON file by path in web or local and and even open zipped files.
+For example: 
+https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872
+
+Application  can read a JSON file by path in web or local and even open zipped files.
 By default, it works with encoded utf_8 files, but sometimes downloaded files can have a different encoding.
 You can use optional parameter **-c** for decode original file. 
 This application supports these codecs:
@@ -62,7 +64,7 @@ $ python pprint_json.py https://op.mos.ru/EHDWSREST/catalog/export/get?id=232872
 
 Use **-h** option for read application info:
 ```
-pprint_json.py -h 
+$ pprint_json.py -h 
 usage: pprint_json.py [-h] [-l]
                       [-c [{utf_8,cp1251,koi8_r,cp866,mac_cyrillic}]]
                       path
