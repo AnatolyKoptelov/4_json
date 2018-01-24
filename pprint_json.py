@@ -85,18 +85,10 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     try:
-        pretty_print_json(
-            load_json(
-                decode_file(
-                    extract_zip_file(
-                        args.load_data(
-                            args.path[0]
-                        ),
-                    ),
-                    args.codec,
-                ),
-            ),
-        )
+        pretty_print_json(load_json(decode_file(
+            extract_zip_file(args.load_data(args.path[0])),
+            args.codec,
+        )))
     except AttributeError:
         print('{} {} {}'.format(
             'Filepath',
