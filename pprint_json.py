@@ -38,6 +38,14 @@ def read_local_file(path):
     return readed_file
 
 
+def decode_file(file_for_decoding, codec):
+    return file_for_decoding.decode(codec)
+
+
+def load_json(json_file):
+    return json.loads(json_file, encoding='utf-8')
+
+
 if __name__ == '__main__':
 
     codecs = [
@@ -78,12 +86,16 @@ if __name__ == '__main__':
     args = parser.parse_args()
     try:
         pretty_print_json(
-            json.loads(
-                extract_zip_file(
-                    args.load_data(args.path[0])
-                ).decode(args.codec),
-                encoding='utf-8',
-            )
+            load_json(
+                decode_file(
+                    extract_zip_file(
+                        args.load_data(
+                            args.path[0]
+                        ),
+                    ),
+                    args.codec,
+                ),
+            ),
         )
     except AttributeError:
         print('{} {} {}'.format(
