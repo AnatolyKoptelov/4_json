@@ -77,28 +77,24 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     try:
-        json_file = args.load_data(args.path[0])
-        json_file = extract_zip_file(json_file)
-        json_file = json_file.decode(args.codec)
-        data_dictionary = json.loads(json_file, encoding='utf-8')
-        pretty_print_json(data_dictionary)
-
+        pretty_print_json(
+            json.loads(
+                extract_zip_file(
+                    args.load_data(args.path[0])
+                ).decode(args.codec),
+                encoding='utf-8',
+            )
+        )
     except AttributeError:
         print('{} {} {}'.format(
-                'Filepath',
-                args.path[0],
-                'does not correct, check it',
-            ))
-    except requests.exceptions.ConnectionError:
-        print('{} {}\n{}\n{}'.format(
-            'Cannot connect to',
+            'Filepath',
             args.path[0],
-            'Check your internet connection or file path is correct',
-            'For opening a local file use "-l" command string option',
+            'does not correct, check it',
         ))
-    except requests.exceptions.MissingSchema as error:
-        print('{}\n{}'.format(
+    except requests.exceptions.RequestException as error:
+        print('{}\n{}\n{}'.format(
             error,
+            'Check your internet connection or file path is correct',
             'For opening a local file use "-l" command string option',
         ))
     except json.decoder.JSONDecodeError:
