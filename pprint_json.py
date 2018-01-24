@@ -78,18 +78,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
     try:
         json_file = args.load_data(args.path[0])
-        if json_file is None:
-            print('{} {} {}'.format(
+        json_file = extract_zip_file(json_file)
+        json_file = json_file.decode(args.codec)
+        data_dictionary = json.loads(json_file, encoding='utf-8')
+        pretty_print_json(data_dictionary)
+
+    except AttributeError:
+        print('{} {} {}'.format(
                 'Filepath',
                 args.path[0],
                 'does not correct, check it',
             ))
-        else:
-            json_file = extract_zip_file(json_file)
-            json_file = json_file.decode(args.codec)
-            data_dictionary = json.loads(json_file, encoding='utf-8')
-            pretty_print_json(data_dictionary)
-
     except requests.exceptions.ConnectionError:
         print('{} {}\n{}\n{}'.format(
             'Cannot connect to',
