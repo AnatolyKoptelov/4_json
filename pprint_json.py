@@ -79,8 +79,10 @@ if __name__ == '__main__':
     try:
         json_file = args.load_data(args.path[0])
         if json_file is None:
-            print('Filepath {} does not correct, check it'.format(
+            print('{} {} {}'.format(
+                'Filepath',
                 args.path[0],
+                'does not correct, check it',
             ))
         else:
             json_file = extract_zip_file(json_file)
@@ -89,8 +91,8 @@ if __name__ == '__main__':
             pretty_print_json(data_dictionary)
 
     except requests.exceptions.ConnectionError:
-        print('{}{}\n{}\n{}'.format(
-            'Cannot connect to ',
+        print('{} {}\n{}\n{}'.format(
+            'Cannot connect to',
             args.path[0],
             'Check your internet connection or file path is correct',
             'For opening a local file use "-l" command string option',
@@ -101,15 +103,20 @@ if __name__ == '__main__':
             'For opening a local file use "-l" command string option',
         ))
     except json.decoder.JSONDecodeError:
-        print('{}{}'.format(
-            'Cannot read JSON file, check this JSON file ',
+        print('{} {}'.format(
+            'Cannot read JSON file, check this JSON file',
             'on the validator or try to use codec.',
         ))
-    except IOError:
-        print('Cannot open the file: {}'.format(args.path[0]))
-    except ValueError:
-        print('{}{} codec.{}'.format(
+    except IOError as error:
+        print('{}\n{}{}'.format(
+            error,
+            'Cannot open the file: ',
+            args.path[0],
+        ))
+    except ValueError as error:
+        print('{}\n{}{} {}'.format(
+            error,
             'Cannot decode file with ',
             args.codec,
-            '\nTry to use other codec!',
+            'Try to use other codec!',
         ))
