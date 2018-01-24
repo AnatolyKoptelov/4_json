@@ -82,8 +82,13 @@ if __name__ == '__main__':
             print('Filepath {} does not correct, check it'.format(
                 args.path[0],
             ))
+        else:
+            json_file = extract_zip_file(json_file)
+            json_file = json_file.decode(args.codec)
+            data_dictionary = json.loads(json_file, encoding='utf-8')
+            pretty_print_json(data_dictionary)
+
     except requests.exceptions.ConnectionError:
-        json_file = None
         print('{}{}\n{}\n{}'.format(
             'Cannot connect to ',
             args.path[0],
@@ -91,38 +96,20 @@ if __name__ == '__main__':
             'For opening a local file use "-l" command string option',
         ))
     except requests.exceptions.MissingSchema as error:
-        json_file = None
         print('{}\n{}'.format(
             error,
             'For opening a local file use "-l" command string option',
         ))
+    except json.decoder.JSONDecodeError:
+        print('{}{}'.format(
+            'Cannot read JSON file, check this JSON file ',
+            'on the validator or try to use codec.',
+        ))
     except IOError:
-        json_file = args.load_data(args.path[0])
-        json_file = None
         print('Cannot open the file: {}'.format(args.path[0]))
-
-    json_file = extract_zip_file(json_file)
-    try:
-        json_file = json_file is not None and json_file.decode(
-            args.codec,
-        ) or None
     except ValueError:
-        json_file = None
         print('{}{} codec.{}'.format(
             'Cannot decode file with ',
             args.codec,
             '\nTry to use other codec!',
         ))
-    try:
-        data_dictionary = json_file is not None and json.loads(
-            json_file,
-            encoding='utf-8',
-        ) or None
-    except json.decoder.JSONDecodeError:
-        data_dictionary = None
-        print('{}{}'.format(
-            'Cannot read JSON file, check this JSON file ',
-            'on the validator or try to use codec.',
-        ))
-    if data_dictionary:
-        pretty_print_json(data_dictionary)
