@@ -89,12 +89,6 @@ if __name__ == '__main__':
             extract_zip_file(args.load_data(args.path[0])),
             args.codec,
         )))
-    except AttributeError:
-        print('{} {} {}'.format(
-            'Filepath',
-            args.path[0],
-            'does not correct, check it',
-        ))
     except requests.exceptions.RequestException as error:
         print('{}\n{}\n{}'.format(
             error,
@@ -106,11 +100,11 @@ if __name__ == '__main__':
             'Cannot read JSON file, check this JSON file',
             'on the validator or try to use codec.',
         ))
-    except IOError as error:
-        print('{}\n{}{}'.format(
-            error,
-            'Cannot open the file: ',
+    except (IOError, AttributeError) as error:
+        print('{} {} {}'.format(
+            'Filepath',
             args.path[0],
+            'does not correct, check it',
         ))
     except ValueError as error:
         print('{}\n{}{} {}'.format(
