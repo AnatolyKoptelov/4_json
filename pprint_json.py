@@ -85,10 +85,18 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     try:
-        pretty_print_json(load_json(decode_file(
-            extract_zip_file(args.load_data(args.path[0])),
-            args.codec,
-        )))
+        json_file = args.load_data(args.path[0])
+        if json_file is None:
+            print('{} {} {}'.format(
+                'Filepath',
+                args.path[0],
+                'does not correct, check it',
+            ))
+        else:
+            pretty_print_json(load_json(decode_file(
+                extract_zip_file(json_file),
+                args.codec,
+            )))
     except requests.exceptions.RequestException as error:
         print('{}\n{}\n{}'.format(
             error,
@@ -100,11 +108,11 @@ if __name__ == '__main__':
             'Cannot read JSON file, check this JSON file',
             'on the validator or try to use codec.',
         ))
-    except (IOError, AttributeError) as error:
-        print('{} {} {}'.format(
-            'Filepath',
+    except IOError as error:
+        print('{}\n{}{}'.format(
+            error,
+            'Cannot open the file: ',
             args.path[0],
-            'does not correct, check it',
         ))
     except ValueError as error:
         print('{}\n{}{} {}'.format(
