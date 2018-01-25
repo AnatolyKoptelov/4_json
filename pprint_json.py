@@ -102,11 +102,6 @@ if __name__ == '__main__':
             'Check your internet connection or file path is correct',
             'For opening a local file use "-l" command string option',
         ))
-    except json.decoder.JSONDecodeError:
-        print('{} {}'.format(
-            'Cannot read JSON file, check this JSON file',
-            'on the validator or try to use codec.',
-        ))
     except IOError as error:
         print('{}\n{}{}'.format(
             error,
@@ -114,11 +109,12 @@ if __name__ == '__main__':
             args.path[0],
         ))
     except ValueError as error:
-        print('{}\n{}{} {}'.format(
+        print('{}\n{} {} {} {}'.format(
             error,
-            'Cannot decode file with ',
+            'Cannot decode file with',
             args.codec,
-            'Try to use other codec!',
+            'codec or cannot read it. Check this JSON file',
+            'with a validator or try to use other codec!',
         ))
     else:
         pretty_print_json(data_dictionary)
