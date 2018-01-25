@@ -93,10 +93,9 @@ if __name__ == '__main__':
                 'does not correct, check it',
             ))
         else:
-            pretty_print_json(load_json(decode_file(
-                extract_zip_file(json_file),
-                args.codec,
-            )))
+            json_file = extract_zip_file(json_file)
+            json_file = decode_file(json_file, args.codec)
+            data_dictionary = load_json(json_file)
     except requests.exceptions.RequestException as error:
         print('{}\n{}\n{}'.format(
             error,
@@ -121,3 +120,5 @@ if __name__ == '__main__':
             args.codec,
             'Try to use other codec!',
         ))
+    else:
+        pretty_print_json(data_dictionary)
