@@ -96,17 +96,14 @@ if __name__ == '__main__':
             json_file = extract_zip_file(json_file)
             json_file = decode_file(json_file, args.codec)
             data_dictionary = load_json(json_file)
-    except requests.exceptions.RequestException as error:
-        print('{}\n{}\n{}'.format(
+            pretty_print_json(data_dictionary)
+    except (requests.exceptions.RequestException, IOError) as error:
+        print('{}\n{} {}\n{}\n{}'.format(
             error,
+            'Cannot open the file:',
+            args.path[0],
             'Check your internet connection or file path is correct',
             'For opening a local file use "-l" command string option',
-        ))
-    except IOError as error:
-        print('{}\n{}{}'.format(
-            error,
-            'Cannot open the file: ',
-            args.path[0],
         ))
     except ValueError as error:
         print('{}\n{} {} {} {}'.format(
@@ -116,5 +113,3 @@ if __name__ == '__main__':
             'codec or cannot read it. Check this JSON file',
             'with a validator or try to use other codec!',
         ))
-    else:
-        pretty_print_json(data_dictionary)
