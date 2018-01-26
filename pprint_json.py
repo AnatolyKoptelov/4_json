@@ -92,13 +92,13 @@ if __name__ == '__main__':
                 'does not correct, check it',
             ))
         else:
-            data = load_json(
+            received_data = load_json(
                 decode_file(
                     extract_zip_file(json_file),
                     codec,
                 ),
             )
-            pretty_print_json(data)
+            pretty_print_json(received_data)
 
     except (requests.exceptions.RequestException, IOError) as error:
         print('{}\n{} {}\n{}\n{}'.format(
