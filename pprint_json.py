@@ -23,21 +23,6 @@ def pretty_print_json(data_dictionary):
     ))
 
 
-def read_web_file(path):
-    response = requests.get(path)
-    readed_file = response.ok and response.content or None
-    return readed_file
-
-
-def read_local_file(path):
-    if os.path.isfile(path):
-        with open(path, 'rb') as file_to_read:
-            readed_file = file_to_read.read()
-    else:
-        readed_file = None
-    return readed_file
-
-
 def decode_file(file_for_decoding, codec):
     return file_for_decoding.decode(codec)
 
@@ -46,7 +31,17 @@ def load_json(json_file):
     return json.loads(json_file, encoding='utf-8')
 
 
-if __name__ == '__main__':
+def get_args():
+
+    def fetch_web_url(url):
+        response = requests.get(url)
+        if response.ok:
+            return response.content
+
+    def read_local_file(path):
+        if os.path.isfile(path):
+            with open(path, 'rb') as file_to_read:
+                return file_to_read.read()
 
     codecs = [
         'utf_8',
@@ -62,7 +57,6 @@ if __name__ == '__main__':
         'path',
         metavar='path',
         type=str,
-        nargs=1,
         help='File path: local or URL',
     )
     parser.add_argument(
@@ -71,7 +65,7 @@ if __name__ == '__main__':
         dest='load_data',
         action='store_const',
         const=read_local_file,
-        default=read_web_file,
+        default=fetch_web_url,
         help='Use if you print a local JSON file',
     )
     parser.add_argument(
@@ -83,25 +77,34 @@ if __name__ == '__main__':
         choices=codecs,
         help='Use for decode a original file',
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = get_args()
+    load_data, path, codec = args.load_data, args.path, args.codec
     try:
-        json_file = args.load_data(args.path[0])
+        json_file = load_data(path)
         if json_file is None:
             print('{} {} {}'.format(
                 'Filepath',
-                args.path[0],
+                path,
                 'does not correct, check it',
             ))
         else:
-            json_file = extract_zip_file(json_file)
-            json_file = decode_file(json_file, args.codec)
-            data_dictionary = load_json(json_file)
-            pretty_print_json(data_dictionary)
+            data = load_json(
+                decode_file(
+                    extract_zip_file(json_file),
+                    codec,
+                ),
+            )
+            pretty_print_json(data)
+
     except (requests.exceptions.RequestException, IOError) as error:
         print('{}\n{} {}\n{}\n{}'.format(
             error,
             'Cannot open the file:',
-            args.path[0],
+            path,
             'Check your internet connection or file path is correct',
             'For opening a local file use "-l" command string option',
         ))
@@ -109,7 +112,7 @@ if __name__ == '__main__':
         print('{}\n{} {} {} {}'.format(
             error,
             'Cannot decode file with',
-            args.codec,
+            codec,
             'codec or cannot read it. Check this JSON file',
             'with a validator or try to use other codec!',
         ))
